@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth" style="scroll-padding-top: 5rem;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conducción de Calor en Sólidos Semiinfinitos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        heat: {
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            700: '#c2410c',
+                            900: '#7c2d12',
+                        },
+                        cold: {
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Segoe UI', 'Roboto', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$']],
+          displayMath: [['$$', '$$']]
+        },
+        svg: {
+          fontCache: 'global'
+        }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #f97316; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #c2410c; }
+        
+        .math-container {
+            overflow-x: auto;
+            padding: 1rem 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased selection:bg-heat-500 selection:text-white">
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-md shadow-md transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fa-solid fa-fire-flame-curved text-heat-500 text-2xl mr-3"></i>
+                    <span class="font-bold text-xl tracking-tight text-gray-900 hidden sm:block">Termotransferencia</span>
+                    <span class="font-bold text-xl tracking-tight text-gray-900 sm:hidden">Termo</span>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-6 text-sm font-medium">
+                    <a href="#introduccion" class="text-gray-600 hover:text-heat-500 transition">Intro</a>
+                    <a href="#ecuaciones" class="text-gray-600 hover:text-heat-500 transition">Ecuaciones</a>
+                    <a href="#tabla-erfc" class="text-gray-600 hover:text-heat-500 transition">Tabla erfc</a>
+                    <a href="#simulador" class="text-gray-600 hover:text-heat-500 transition">Simulador</a>
+                    <a href="#ejemplos" class="text-gray-600 hover:text-heat-500 transition">Ejemplos</a>
+                    <a href="#aplicaciones" class="text-gray-600 hover:text-heat-500 transition">Aplicaciones</a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="flex md:hidden items-center">
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-heat-500 focus:outline-none">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu Panel -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-200 shadow-lg absolute w-full">
+            <div class="px-4 pt-2 pb-4 space-y-1">
+                <a href="#introduccion" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-heat-500 hover:bg-heat-100">Introducción</a>
+                <a href="#ecuaciones" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-heat-500 hover:bg-heat-100">Ecuaciones</a>
+                <a href="#tabla-erfc" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-heat-500 hover:bg-heat-100">Tabla erfc</a>
+                <a href="#simulador" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-heat-500 hover:bg-heat-100">Simulador Gráfico</a>
+                <a href="#ejemplos" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-heat-500 hover:bg-heat-100">Ejemplos</a>
+                <a href="#aplicaciones" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-heat-500 hover:bg-heat-100">Aplicaciones</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header / Portada -->
+    <header class="relative pt-24 pb-16 md:pt-32 md:pb-24 flex items-center justify-center bg-gradient-to-br from-heat-900 via-heat-700 to-cold-900 text-white overflow-hidden shadow-xl">
+        <!-- Abstract Background shapes -->
+        <div class="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none">
+            <div class="absolute w-96 h-96 bg-heat-500 rounded-full mix-blend-screen filter blur-3xl -top-20 -left-20 animate-pulse"></div>
+            <div class="absolute w-96 h-96 bg-cold-500 rounded-full mix-blend-screen filter blur-3xl bottom-10 right-10 animate-pulse" style="animation-delay: 2s;"></div>
+        </div>
+
+        <div class="relative z-10 text-center px-4 max-w-4xl mx-auto">
+            <span class="bg-white/20 text-white text-xs md:text-sm font-bold tracking-wider uppercase px-4 py-1.5 rounded-full backdrop-blur-sm shadow-sm inline-block mb-6 border border-white/30">Transferencia de Calor I</span>
+            <h1 class="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 drop-shadow-lg">
+                Conducción Transitoria en <br> <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-heat-100">Sólidos Semiinfinitos</span>
+            </h1>
+            <p class="text-lg md:text-xl text-white/90 mb-8 max-w-2xl mx-auto font-light">
+                Modelado matemático del comportamiento térmico durante los instantes iniciales de transferencia de calor.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-4 text-sm font-medium">
+                <div class="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-5 py-2 rounded-lg border border-white/10">
+                    <i class="fa-solid fa-building-columns"></i> Univ. de América
+                </div>
+                <div class="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-5 py-2 rounded-lg border border-white/10">
+                    <i class="fa-solid fa-user-tie"></i> Ph.D. Juan Sandoval
+                </div>
+                <div class="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-5 py-2 rounded-lg border border-white/10">
+                    <i class="fa-regular fa-calendar"></i> 2026
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
+        
+        <!-- Sección: Introducción y Conceptos -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8" id="introduccion">
+            <!-- Introducción -->
+            <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 hover:shadow-md transition-shadow">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-full bg-cold-100 flex items-center justify-center text-cold-500">
+                        <i class="fa-solid fa-cube text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900">1. Introducción</h2>
+                </div>
+                <p class="text-gray-600 leading-relaxed">
+                    Un <strong>sólido semiinfinito</strong> es un cuerpo idealizado que posee una sola superficie plana y se extiende ininterrumpidamente hacia el infinito en todas las demás direcciones [1]. Aunque no existen objetos de dimensiones literalmente infinitas en la realidad, este modelo matemático aproxima con gran precisión el comportamiento térmico de cuerpos gruesos durante los instantes iniciales de un régimen transitorio. Se utiliza para analizar el cambio de temperatura en la región cercana a la superficie exterior.
+                </p>
+            </section>
+
+            <!-- Conceptos -->
+            <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 hover:shadow-md transition-shadow" id="conceptos">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-full bg-heat-100 flex items-center justify-center text-heat-500">
+                        <i class="fa-solid fa-lightbulb text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900">2. Conceptos básicos</h2>
+                </div>
+                <p class="text-gray-600 leading-relaxed mb-4">
+                    Durante periodos cortos, la mayoría de los cuerpos macroscópicos pueden modelarse bajo este régimen porque la energía térmica no tiene el tiempo físico suficiente para penetrar a fondo, haciendo que el espesor total sea irrelevante para el análisis inicial.
+                </p>
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                    <p class="text-sm text-blue-800">
+                        <strong>Clave:</strong> Para validar este modelo frente al espesor real de una pieza, se calcula la <em>profundidad de penetración térmica</em>. Si esta es menor que el espesor real, la aproximación es plenamente válida.
+                    </p>
+                </div>
+            </section>
+        </div>
+
+        <!-- Sección: Ecuaciones -->
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 lg:p-12 relative overflow-hidden" id="ecuaciones">
+            <!-- Icono decorativo de fondo -->
+            <i class="fa-solid fa-square-root-variable absolute -right-10 -bottom-10 text-9xl text-gray-50 opacity-50 pointer-events-none"></i>
+            
+            <div class="relative z-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8 border-b-2 border-heat-500 inline-block pb-2">3. Modelo Matemático</h2>
+                
+                <p class="text-gray-600 mb-6 text-lg">La ecuación diferencial parcial que gobierna la conducción transitoria unidimensional, sin fuentes internas de generación, es:</p>
+                
+                <div class="bg-gray-50 rounded-xl p-6 mb-8 border border-gray-200 text-center math-container shadow-inner">
+                    $$\frac{\partial^2 T}{\partial x^2}=\frac{1}{\alpha}\frac{\partial T}{\partial t}$$
+                </div>
+
+                <p class="text-gray-600 mb-6">Dado que el medio no está acotado, los métodos habituales como la separación de variables no funcionan. Se introduce una <strong>variable de semejanza</strong> $\eta$, la cual combina las variables espaciales y temporales:</p>
+                
+                <div class="bg-gray-50 rounded-xl p-4 mb-10 border border-gray-200 text-center math-container shadow-inner">
+                    $$\eta=\frac{x}{\sqrt{4\alpha t}}$$
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Caso 1 -->
+                    <div class="bg-gradient-to-b from-white to-orange-50 rounded-xl p-6 border border-orange-100 shadow-sm relative hover:-translate-y-1 transition-transform">
+                        <div class="absolute top-0 right-0 bg-heat-500 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">CASO 1</div>
+                        <h3 class="text-xl font-bold text-heat-700 mb-4">Temperatura Constante ($T_s$)</h3>
+                        <p class="text-sm text-gray-600 mb-4">Si la superficie experimenta un cambio brusco a $T_s$, usamos la función de error complementaria ($\text{erfc}$):</p>
+                        <div class="math-container text-sm">
+                            $$\frac{T(x,t)-T_i}{T_s-T_i}=\text{erfc}\left(\frac{x}{2\sqrt{\alpha t}}\right)$$
+                        </div>
+                        <p class="text-sm text-gray-600 mt-4 mb-2">Flujo de calor en la frontera ($\dot{q}_s$):</p>
+                        <div class="math-container text-sm">
+                            $$\dot{q}_s(t)=\frac{k(T_s-T_i)}{\sqrt{\pi\alpha t}}$$
+                        </div>
+                    </div>
+
+                    <!-- Caso 2 -->
+                    <div class="bg-gradient-to-b from-white to-blue-50 rounded-xl p-6 border border-blue-100 shadow-sm relative hover:-translate-y-1 transition-transform">
+                        <div class="absolute top-0 right-0 bg-cold-500 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">CASO 2</div>
+                        <h3 class="text-xl font-bold text-cold-900 mb-4">Flujo Constante ($\dot{q}_s$)</h3>
+                        <p class="text-sm text-gray-600 mb-4">Si el cuerpo se somete a un suministro continuo de energía térmica en la superficie:</p>
+                        <div class="math-container text-xs sm:text-sm">
+                            $$T(x,t)-T_i=\frac{\dot{q}_s}{k}\left[\sqrt{\frac{4\alpha t}{\pi}}\exp\left(-\frac{x^2}{4\alpha t}\right)-x\cdot\text{erfc}\left(\frac{x}{2\sqrt{\alpha t}}\right)\right]$$
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección: Tabla ERFC -->
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 lg:p-12" id="tabla-erfc">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+                    <i class="fa-solid fa-table text-xl"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-900">Tabla de Función de Error Complementaria</h2>
+            </div>
+            <p class="text-gray-600 mb-6">
+                La función $\text{erfc}(\eta)$ es indispensable para resolver analíticamente problemas de conducción en medios semiinfinitos. A continuación se presenta una tabla de valores extraída para facilitar los cálculos de temperatura y flujo de calor.
+            </p>
+            
+            <div class="overflow-x-auto max-h-[400px] border border-gray-200 rounded-lg shadow-inner relative">
+                <table class="min-w-full divide-y divide-gray-200 text-sm text-center">
+                    <thead class="bg-gray-50 sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th class="px-4 py-3 font-bold text-purple-700 border-r border-gray-200">$\eta$</th>
+                            <th class="px-4 py-3 font-bold text-gray-700 border-r border-gray-200">$\text{erfc}(\eta)$</th>
+                            <th class="px-4 py-3 font-bold text-purple-700 border-r border-gray-200">$\eta$</th>
+                            <th class="px-4 py-3 font-bold text-gray-700 border-r border-gray-200">$\text{erfc}(\eta)$</th>
+                            <th class="px-4 py-3 font-bold text-purple-700 border-r border-gray-200">$\eta$</th>
+                            <th class="px-4 py-3 font-bold text-gray-700">$\text{erfc}(\eta)$</th>
+                        </tr>
+                    </thead>
+                    <tbody id="erfc-tbody" class="bg-white divide-y divide-gray-200">
+                        <!-- Generado dinámicamente por JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Simulador Gráfico (NUEVO) -->
+        <section class="bg-white rounded-2xl shadow-lg border-2 border-indigo-50 p-8" id="simulador">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <i class="fa-solid fa-chart-line text-indigo-500"></i> Gráfico Interactivo
+                    </h2>
+                    <p class="text-gray-500 mt-2">Distribución de temperatura $T(x,t)$ para una superficie a temperatura constante $T_s > T_i$.</p>
+                </div>
+                <div class="mt-4 md:mt-0 flex gap-2">
+                    <button onclick="updateChart(10)" class="px-4 py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-lg text-sm font-semibold transition">t = 10 min</button>
+                    <button onclick="updateChart(60)" class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-sm font-semibold transition">t = 60 min</button>
+                </div>
+            </div>
+            
+            <div class="w-full h-[400px] relative">
+                <canvas id="tempChart"></canvas>
+            </div>
+            <p class="text-xs text-center text-gray-400 mt-4">* Simulación esquemática aproximada de la función de error complementaria para $\alpha = 1\times10^{-6} m^2/s$, $T_s = 100^\circ C$, $T_i = 20^\circ C$.</p>
+        </section>
+
+        <!-- Sección: Ejemplos Prácticos -->
+        <section id="ejemplos">
+            <h2 class="text-3xl font-bold text-gray-900 mb-8 border-b-2 border-heat-500 inline-block pb-2">4. Ejemplos Prácticos</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Ejemplo 1 -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                    <div class="bg-cold-900 text-white p-4">
+                        <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-regular fa-snowflake"></i> Ejemplo 1: Tuberías en invierno</h3>
+                    </div>
+                    <div class="p-6 flex-grow flex flex-col">
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4 text-sm text-gray-700 border-l-4 border-cold-500">
+                            <strong>Enunciado:</strong> Suelo cubierto de nieve a $-10^\circ C$ por 3 meses. Suelo inicial a $15^\circ C$. $k=0.4 W/m\cdot^\circ C$, $\alpha=0.15\times10^{-6} m^2/s$. Determine profundidad mínima para evitar que el tubo llegue a $0^\circ C$.
+                        </div>
+                        <div class="text-sm text-gray-600 space-y-3 math-container">
+                            <p>Tiempo: $t = 90d = 7.78\times 10^6 s$</p>
+                            <p>Evaluar distribución:</p>
+                            $$\frac{0-15}{-10-15}=0.60=\text{erfc}(\eta)$$
+                            <p>De tablas, $\eta \approx 0.36$. Despejando $x$:</p>
+                            $$x=2(0.36)\sqrt{(0.15\times10^{-6})(7.78\times 10^6)} \approx 0.78 \text{ m}$$
+                        </div>
+                        <div class="mt-auto pt-4 border-t border-gray-100">
+                            <p class="text-sm font-bold text-cold-900 bg-cold-100 px-3 py-2 rounded-md">Respuesta: Mínimo 78 cm de profundidad.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ejemplo 2 -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                    <div class="bg-heat-700 text-white p-4">
+                        <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-sun"></i> Ejemplo 2: Bloque de Madera</h3>
+                    </div>
+                    <div class="p-6 flex-grow flex flex-col">
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4 text-sm text-gray-700 border-l-4 border-heat-500">
+                            <strong>Enunciado:</strong> Madera expuesta a radiación solar de $1250 W/m^2$. $T_i = 20^\circ C$. $k=1.26 W/m\cdot^\circ C$, $\alpha=1.1\times 10^{-5} m^2/s$. Calcule $T_s$ tras 20 min.
+                        </div>
+                        <div class="text-sm text-gray-600 space-y-3 math-container">
+                            <p>Límite de flujo constante en $x=0$, $t = 1200 s$:</p>
+                            $$T_s=T_i+\frac{\dot{q}_s}{k}\sqrt{\frac{4\alpha t}{\pi}}$$
+                            <p>Reemplazando:</p>
+                            $$T_s=20+\frac{1250}{1.26}\sqrt{\frac{4(1.1\times 10^{-5})(1200)}{\pi}}$$
+                        </div>
+                        <div class="mt-auto pt-4 border-t border-gray-100">
+                            <p class="text-sm font-bold text-heat-900 bg-orange-100 px-3 py-2 rounded-md">Respuesta: Superficie alcanza $\approx 149^\circ C$.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ejemplo 3 -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col md:col-span-2 lg:col-span-1">
+                    <div class="bg-purple-700 text-white p-4">
+                        <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-calculator"></i> Ejemplo 3: Uso de la tabla erfc</h3>
+                    </div>
+                    <div class="p-6 flex-grow flex flex-col">
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4 text-sm text-gray-700 border-l-4 border-purple-500">
+                            <strong>Enunciado:</strong> Un bloque ($\alpha = 1.0 \times 10^{-6} m^2/s$) a $T_i = 25^\circ C$ experimenta un cambio brusco a $T_s = 250^\circ C$. Usando la tabla, determine la temperatura a $x = 5 \text{ cm}$ después de $t = 2500 \text{ s}$.
+                        </div>
+                        <div class="text-sm text-gray-600 space-y-3 math-container">
+                            <p>1. Calculamos la variable de semejanza $\eta$:</p>
+                            $$\eta = \frac{0.05}{2\sqrt{10^{-6} \times 2500}} = 0.50$$
+                            <p>2. Buscamos en la tabla para $\eta = 0.50$:</p>
+                            $$\text{erfc}(0.50) = 0.4795$$
+                            <p>3. Despejamos de la ecuación de temperatura constante:</p>
+                            $$\frac{T - 25}{250 - 25} = 0.4795 \implies T - 25 = 225(0.4795)$$
+                        </div>
+                        <div class="mt-auto pt-4 border-t border-gray-100">
+                            <p class="text-sm font-bold text-purple-900 bg-purple-100 px-3 py-2 rounded-md">Respuesta: $T = 132.89^\circ C$.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección: Aplicaciones -->
+        <section id="aplicaciones">
+            <h2 class="text-3xl font-bold text-gray-900 mb-8 border-b-2 border-heat-500 inline-block pb-2">5. Aplicaciones Industriales</h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Tarjeta 1 -->
+                <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all border border-gray-100 group">
+                    <div class="text-heat-500 text-3xl mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-gears"></i></div>
+                    <h4 class="font-bold text-gray-900 mb-2">Tratamiento Térmico</h4>
+                    <p class="text-sm text-gray-500">Choques térmicos en inmersión de metales para endurecimiento superficial (fases martensíticas).</p>
+                </div>
+                <!-- Tarjeta 2 -->
+                <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all border border-gray-100 group">
+                    <div class="text-red-500 text-3xl mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-burst"></i></div>
+                    <h4 class="font-bold text-gray-900 mb-2">Sistemas Láser</h4>
+                    <p class="text-sm text-gray-500">Soldadura instantánea por micro-pulsos láser en piezas termodinámicamente infinitas.</p>
+                </div>
+                <!-- Tarjeta 3 -->
+                <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all border border-gray-100 group">
+                    <div class="text-blue-400 text-3xl mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-drumstick-bite"></i></div>
+                    <h4 class="font-bold text-gray-900 mb-2">Ing. de Alimentos</h4>
+                    <p class="text-sm text-gray-500">Mitigación de "quemaduras por frío" en contacto con estanterías y pasteurización superficial.</p>
+                </div>
+                <!-- Tarjeta 4 -->
+                <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all border border-gray-100 group">
+                    <div class="text-emerald-500 text-3xl mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-city"></i></div>
+                    <h4 class="font-bold text-gray-900 mb-2">Cimentaciones</h4>
+                    <p class="text-sm text-gray-500">Desplazamiento del frente de congelación estacional en zonas árticas o permafrost profundo.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ejercicios Propuestos -->
+        <section class="bg-gray-100 rounded-2xl p-8 mb-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <i class="fa-solid fa-pencil text-gray-500"></i> Ejercicios Propuestos
+            </h2>
+            <div class="space-y-4 text-gray-700 text-sm">
+                <details class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer [&_svg]:open:-rotate-180">
+                    <summary class="font-bold outline-none flex justify-between items-center">
+                        Ejercicio 1: Enfriamiento de bloque metálico
+                        <svg class="w-5 h-5 transition-transform text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </summary>
+                    <p class="mt-4 pt-4 border-t border-gray-100">Considere un bloque de acero muy grueso inicialmente a $300^\circ C$. Se expone a convección con aire a $20^\circ C$ ($h=150 W/m^2\cdot^\circ C$). Evalúe si califica como sólido semiinfinito tras 30s y prediga la temperatura a $5 \text{ cm}$ de la superficie.</p>
+                </details>
+                <details class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer [&_svg]:open:-rotate-180">
+                    <summary class="font-bold outline-none flex justify-between items-center">
+                        Ejercicio 2: Temperatura de contacto bimaterial
+                        <svg class="w-5 h-5 transition-transform text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </summary>
+                    <p class="mt-4 pt-4 border-t border-gray-100">Analice el instante de encuentro táctil. Carne humana ($T=35^\circ C$, $\sqrt{k\rho C_p} = 1.1$) contacta Aluminio ($T=15^\circ C$, $\sqrt{k\rho C_p} = 24$). Formule el balance y determine la temperatura de contacto inicial estática.</p>
+                </details>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12 text-sm text-center">
+        <div class="max-w-4xl mx-auto px-4">
+            <h3 class="text-xl font-bold mb-4 text-gray-400">Bibliografía</h3>
+            <ul class="text-gray-500 space-y-2 mb-8 list-none">
+                <li>[1] Cengel, Y. A. (2007). <em>Transferencia de calor y masa: un enfoque práctico</em>. McGraw-Hill.</li>
+                <li>[2] Fernández Díez, P. <em>Ingeniería Térmica</em>. Universidad de Cantabria.</li>
+            </ul>
+            <p class="text-gray-600 border-t border-gray-800 pt-6">
+                © 2026 Universidad de América - Cátedra de Termodinámica. Documento interactivo rediseñado.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Botón Volver Arriba -->
+    <button id="btn-top" class="fixed bottom-6 right-6 bg-heat-500 hover:bg-heat-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-xl opacity-0 invisible transition-all duration-300 z-50 transform hover:-translate-y-1">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <!-- Scripts de Interacción -->
+    <script>
+        // 1. Mobile Menu Toggle
+        const btnMenu = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        btnMenu.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Close mobile menu on link click
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+
+        // 2. Scroll to Top Button Visibility
+        const btnTop = document.getElementById('btn-top');
+        const navbar = document.getElementById('navbar');
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                btnTop.classList.remove('opacity-0', 'invisible');
+                btnTop.classList.add('opacity-100', 'visible');
+            } else {
+                btnTop.classList.add('opacity-0', 'invisible');
+                btnTop.classList.remove('opacity-100', 'visible');
+            }
+
+            // Navbar shadow logic
+            if (window.scrollY > 10) {
+                navbar.classList.add('shadow-md');
+            } else {
+                navbar.classList.remove('shadow-md');
+            }
+        });
+
+        btnTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // 3. Simulación Chart.js (Aproximación Numérica de Erfc para visualización)
+        // Función analítica rápida aproximada para generar la curva de Error Complementaria
+        function getErfcCurve(timeInSeconds) {
+            const alpha = 1e-6; // m2/s
+            const Ts = 100;
+            const Ti = 20;
+            const data = [];
+            
+            for (let x = 0; x <= 0.2; x += 0.005) { // de 0 a 20 cm
+                // eta = x / sqrt(4 * alpha * t)
+                const eta = x / Math.sqrt(4 * alpha * timeInSeconds);
+                
+                // Aproximación gaussiana para efecto visual erfc similar
+                // T(x,t) = Ti + (Ts - Ti) * erfc(eta)
+                // Usamos exp(-eta^2) suavizado como representación pedagógica visual
+                let erfcApprox = 0;
+                if(eta < 3) { // Si eta es muy grande, temp es Ti
+                    // Abramowitz & Stegun approximation
+                    const t = 1.0 / (1.0 + 0.5 * eta);
+                    const ans = t * Math.exp(-eta * eta - 1.26551223 +
+                                t * (1.00002368 +
+                                t * (0.37409196 +
+                                t * (0.09678418 +
+                                t * (-0.18628806 +
+                                t * (0.27886807 +
+                                t * (-1.13520398 +
+                                t * (1.48851587 +
+                                t * (-0.82215223 +
+                                t * 0.17087277)))))))));
+                    erfcApprox = ans;
+                }
+                
+                const temp = Ti + (Ts - Ti) * erfcApprox;
+                data.push({x: (x*100).toFixed(1), y: temp.toFixed(2)}); // x en cm
+            }
+            return data;
+        }
+
+        // Inicializar gráfico
+        const ctx = document.getElementById('tempChart').getContext('2d');
+        let tempChart;
+
+        function renderChart(timeMinutes) {
+            const dataP = getErfcCurve(timeMinutes * 60);
+            
+            const config = {
+                type: 'line',
+                data: {
+                    labels: dataP.map(d => d.x),
+                    datasets: [{
+                        label: `Temperatura a los ${timeMinutes} minutos`,
+                        data: dataP.map(d => d.y),
+                        borderColor: timeMinutes === 10 ? '#818cf8' : '#f97316', // Indigo vs Orange
+                        backgroundColor: timeMinutes === 10 ? 'rgba(129, 140, 248, 0.2)' : 'rgba(249, 115, 22, 0.2)',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `T: ${context.parsed.y} °C`;
+                                },
+                                title: function(context) {
+                                    return `Profundidad: ${context[0].label} cm`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Profundidad desde la superficie (cm)', font: {weight: 'bold'} },
+                            ticks: { maxTicksLimit: 10 }
+                        },
+                        y: {
+                            title: { display: true, text: 'Temperatura (°C)', font: {weight: 'bold'} },
+                            min: 15,
+                            max: 105
+                        }
+                    }
+                }
+            };
+
+            if (tempChart) {
+                tempChart.destroy();
+            }
+            tempChart = new Chart(ctx, config);
+        }
+
+        // Función para los botones del simulador
+        window.updateChart = function(minutes) {
+            renderChart(minutes);
+        }
+
+        // 4. Generación dinámica de la tabla erfc
+        function generateErfcTable() {
+            const data = [
+                [0.00, "1.00000", 0.38, "0.5910", 0.76, "0.2825"], [0.02, "0.9774", 0.40, "0.5716", 0.78, "0.2700"],
+                [0.04, "0.9549", 0.42, "0.5525", 0.80, "0.2579"], [0.06, "0.9324", 0.44, "0.5338", 0.82, "0.2462"],
+                [0.08, "0.9099", 0.46, "0.5153", 0.84, "0.2349"], [0.10, "0.8875", 0.48, "0.4973", 0.86, "0.2239"],
+                [0.12, "0.8652", 0.50, "0.4795", 0.88, "0.2133"], [0.14, "0.8431", 0.52, "0.4621", 0.90, "0.2031"],
+                [0.16, "0.8210", 0.54, "0.4451", 0.92, "0.1932"], [0.18, "0.7991", 0.56, "0.4284", 0.94, "0.1837"],
+                [0.20, "0.7773", 0.58, "0.4121", 0.96, "0.1746"], [0.22, "0.7557", 0.60, "0.3961", 0.98, "0.1658"],
+                [0.24, "0.7343", 0.62, "0.3806", 1.00, "0.1573"], [0.26, "0.7131", 0.64, "0.3654", 1.02, "0.1492"],
+                [0.28, "0.6921", 0.66, "0.3506", 1.04, "0.1413"], [0.30, "0.6714", 0.68, "0.3362", 1.06, "0.1339"],
+                [0.32, "0.6509", 0.70, "0.3222", 1.08, "0.1267"], [0.34, "0.6306", 0.72, "0.3086", 1.10, "0.1198"],
+                [0.36, "0.6107", 0.74, "0.2953", 1.12, "0.1132"], [1.14, "0.1069", 1.52, "0.03159", 1.90, "0.00721"],
+                [1.16, "0.10090", 1.54, "0.02941", 1.92, "0.00662"], [1.18, "0.09516", 1.56, "0.02737", 1.94, "0.00608"],
+                [1.20, "0.08969", 1.58, "0.02545", 1.96, "0.00557"], [1.22, "0.08447", 1.60, "0.02365", 1.98, "0.00511"],
+                [1.24, "0.07950", 1.62, "0.02196", 2.00, "0.00468"], [1.26, "0.07476", 1.64, "0.02038", 2.10, "0.00298"],
+                [1.28, "0.07027", 1.66, "0.01890", 2.20, "0.00186"], [1.30, "0.06599", 1.68, "0.01751", 2.30, "0.00114"],
+                [1.32, "0.06194", 1.70, "0.01612", 2.40, "0.00069"], [1.34, "0.05809", 1.72, "0.01500", 2.50, "0.00041"],
+                [1.36, "0.05444", 1.74, "0.01387", 2.60, "0.00024"], [1.38, "0.05098", 1.76, "0.01281", 2.70, "0.00013"],
+                [1.40, "0.04772", 1.78, "0.01183", 2.80, "0.00008"], [1.42, "0.04462", 1.80, "0.01091", 2.90, "0.00004"],
+                [1.44, "0.04170", 1.82, "0.01006", 3.00, "0.00002"], [1.46, "0.03895", 1.84, "0.00926", 3.20, "0.00001"],
+                [1.48, "0.03635", 1.86, "0.00853", 3.40, "0.00000"], [1.50, "0.03390", 1.88, "0.00784", 3.60, "0.00000"]
+            ];
+            
+            const tbody = document.getElementById('erfc-tbody');
+            if(tbody) {
+                data.forEach((row, index) => {
+                    const tr = document.createElement('tr');
+                    tr.className = index % 2 === 0 ? 'bg-white hover:bg-gray-50 transition' : 'bg-gray-50 hover:bg-gray-100 transition';
+                    
+                    row.forEach((val, i) => {
+                        const td = document.createElement('td');
+                        td.className = `px-4 py-2 font-mono ${i % 2 === 0 ? 'text-purple-600 border-r border-gray-100 font-bold' : 'text-gray-800'}`;
+                        td.textContent = (i % 2 === 0 && typeof val === 'number') ? val.toFixed(2) : val;
+                        if(i === 1 || i === 3) td.classList.add('border-r', 'border-gray-200');
+                        tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        // Render inicial (10 minutos)
+        window.onload = function() {
+            renderChart(10);
+            generateErfcTable();
+        };
+    </script>
+</body>
+</html>
